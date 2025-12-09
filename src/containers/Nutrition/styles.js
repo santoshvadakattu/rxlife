@@ -1,0 +1,128 @@
+// @flow
+import {StatusBar, StyleSheet} from 'react-native';
+import {Colors, Metrics} from '../../theme';
+
+export default StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    paddingHorizontal: 20,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    paddingTop: StatusBar.currentHeight + 5,
+    justifyContent: 'space-between',
+    // marginBottom: -20,
+  },
+  headerIconView: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerIcon: {
+    marginLeft: 14,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+  },
+  CarouseView: {
+    backgroundColor: Colors.white,
+    height: 59,
+    width: '100%',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 0.5,
+    elevation: 2,
+  },
+  nutritionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 0.5,
+    elevation: 2,
+    height: 47,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 15,
+    paddingBottom: 0,
+  },
+  btnNutritionItem: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.background.primary,
+  },
+  NutritionCountAndAddView: {
+    marginVertical: 15,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  btnStyle: {
+    flex: 0.5,
+    height: 45,
+    padding: 0,
+    marginTop: 5,
+    borderRadius: 6,
+  },
+  exerciseView: {
+    backgroundColor: Colors.white,
+    height: 59,
+    width: '100%',
+    borderRadius: 12,
+    padding: 15,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 0.5,
+    elevation: 2,
+    flex: 1,
+    marginBottom: 20,
+  },
+  waterView: {
+    backgroundColor: Colors.white,
+    width: '100%',
+    borderRadius: 12,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 0.5,
+    elevation: 2,
+    marginBottom: 20,
+  },
+  separator: {
+    backgroundColor: 'rgba(244, 243, 247, 0.5)',
+    height: 0.5,
+    marginVertical: 10,
+  },
+
+  threeDot: {
+    width: 25,
+    height: 20,
+    paddingVertical: 4,
+    alignItems: 'flex-end',
+  },
+});

@@ -1,0 +1,24 @@
+import React from 'react';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+
+const KeyboardAwareScrollViewComponent = (props) => (
+  <KeyboardAwareScrollView
+    showsVerticalScrollIndicator={false}
+    bounces={false}
+    behavior={'padding'}
+    keyboardShouldPersistTaps="handled"
+    enableOnAndroid={true}
+    extraHeight={150}
+    extraScrollHeight={20}
+    alwaysBounceVertical={false}
+    keyboardOpeningTime={Number.MAX_SAFE_INTEGER}
+    scrollEnabled={props?.scrollEnabled}
+    enableAutomaticScroll={true}
+    contentContainerStyle={props?.style}
+    automaticallyAdjustContentInsets={true}
+    style={props?.containerStyle ?? {}}>
+    {props?.children}
+  </KeyboardAwareScrollView>
+);
+
+export default KeyboardAwareScrollViewComponent;

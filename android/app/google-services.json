@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "192225197283",
+    "project_id": "rxlife-challenges",
+    "storage_bucket": "rxlife-challenges.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:192225197283:android:63fd3fbbb311c68cd459d6",
+        "android_client_info": {
+          "package_name": "com.rxlifechallenge"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFxEOC4-76XNtHvz8nAcqZRyYExZn8w5k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
