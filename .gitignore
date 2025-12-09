@@ -1,0 +1,23 @@
+# Node
+node_modules/
+
+# Android build outputs
+android/app/build/
+android/.gradle/
+android/build/
+
+# iOS
+ios/Pods/
+ios/build/
+*.xcframework
+
+# APK / AAB
+*.apk
+*.aab
+
+# macOS
+.DS_Store
+
+# Electron
+dist/
+
