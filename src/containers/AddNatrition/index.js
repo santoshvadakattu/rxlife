@@ -618,6 +618,21 @@ export default function AddNatrition({route}) {
     );
   };
 
+  // Add this helper label render function
+const renderHelperLabel = () => {
+  return (
+    <View style={{paddingHorizontal: 15, marginTop: 6, marginBottom: 6}}>
+      <Text
+        size={11}
+        type={Fonts.type.base}
+        color={Colors.text.blueGray}
+        style={{fontWeight: '400', lineHeight: 16}}>
+        Ex: 1lb Chicken
+      </Text>
+    </View>
+  );
+};
+
   const renderNutritionListRecipes = () => {
     return (
       <View style={{flex: 1}}>
@@ -802,6 +817,7 @@ export default function AddNatrition({route}) {
       }}>
       <CustomHeaderNutrition title={`Add ${selectedNutrion}`} />
       {renderSearchBar()}
+      {renderHelperLabel()}
       {renderNutritionHeader()}
       {nutritionHeader == 'All' && renderNutritionListAll()}
       {nutritionHeader == 'My Meals' && renderNutritionListMeals()}
