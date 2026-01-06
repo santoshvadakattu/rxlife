@@ -24,19 +24,39 @@ export default function NutritionGraph(props) {
   useEffect(() => {
     let calories = 0;
 
-    // Check if labelNutrients is an object and contains the required keys
+    // Check if labelNutrients is an object with keys like fat_total_g
     if (labelNutrients && typeof labelNutrients === 'object') {
-      const fat = parseFloat(labelNutrients.fat_total_g) || 0;
-      const carbs = parseFloat(labelNutrients.carbohydrates_total_g) || 0;
-      const protein = parseFloat(labelNutrients.protein_g) || 0;
+      if (Array.isArray(labelNutrients)) {
+        // If it's an array, find the nutrients by name
+        const fatObj = labelNutrients.find(n => n.name && n.name.toLowerCase().includes('fat'));
+        const carbsObj = labelNutrients.find(n => n.name && n.name.toLowerCase().includes('carb'));
+        const proteinObj = labelNutrients.find(n => n.name && n.name.toLowerCase().includes('protein'));
 
-      setFat(fat);
-      setCarbs(carbs);
-      setProtien(protein);
+        const fat = parseFloat(fatObj?.value) || 0;
+        const carbs = parseFloat(carbsObj?.value) || 0;
+        const protein = parseFloat(proteinObj?.value) || 0;
 
-      // Calculate total calories
-      calories = fat * 9 + carbs * 4 + protein * 4;
-      setCalories(calories);
+        setFat(fat);
+        setCarbs(carbs);
+        setProtien(protein);
+
+        // Calculate total calories
+        calories = fat * 9 + carbs * 4 + protein * 4;
+        setCalories(calories);
+      } else {
+        // If it's an object with direct keys
+        const fat = parseFloat(labelNutrients.fat_total_g) || 0;
+        const carbs = parseFloat(labelNutrients.carbohydrates_total_g) || 0;
+        const protein = parseFloat(labelNutrients.protein_g) || 0;
+
+        setFat(fat);
+        setCarbs(carbs);
+        setProtien(protein);
+
+        // Calculate total calories
+        calories = fat * 9 + carbs * 4 + protein * 4;
+        setCalories(calories);
+      }
     } else {
       // Reset values if labelNutrients is not valid
       setFat(0);

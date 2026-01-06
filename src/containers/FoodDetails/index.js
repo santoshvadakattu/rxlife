@@ -1,4 +1,4 @@
-import {View, Image, Dimensions, ScrollView, FlatList} from 'react-native';
+import {View, Image, Dimensions, ScrollView, FlatList, ActivityIndicator} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import styles from './styles';
 import {
@@ -38,7 +38,8 @@ export default function FoodDetails({route}) {
   );
   const [isDeleteVisible, setIsDeleteVisible] = useState(false);
   const [itemFoodDetail, setFoodItemDetails] = useState({});
-        const user = useSelector(({user}) => user?.userData);
+  const [isLoading, setIsLoading] = useState(true);
+  const user = useSelector(({user}) => user?.userData);
   const [allFoodsDataSearch, setAllFoodsDataSearch] = useState([]); // Add state to store fetched data
   const {
     addFromUSDA,
@@ -54,6 +55,7 @@ export default function FoodDetails({route}) {
     apiCall();
   }, []);
   async function apiCall() {
+    setIsLoading(true);
     if (item.addFromUSDA) {
       dispatch(
         getAllFoodItemByIdRequest({
@@ -65,6 +67,7 @@ export default function FoodDetails({route}) {
               console.log({response});
               setFoodItemDetails(response);
             }
+            setIsLoading(false);
           },
         }),
       );
@@ -78,6 +81,7 @@ export default function FoodDetails({route}) {
             if (status) {
               setFoodItemDetails(response);
             }
+            setIsLoading(false);
           },
         }),
       );
@@ -134,43 +138,52 @@ export default function FoodDetails({route}) {
   const renderGraph = () => {
     return (
       <>
-        <NutritionGraph labelNutrients={item || []} />
+        <NutritionGraph labelNutrients={labelNutrients || item || []} />
       </>
     );
   };
 
   const renderNutrients = () => {
-    console.log('item.foodNutrients:', item);
 
+    // Use itemFoodDetail (fetched data) instead of item (prop data) for complete nutrient info
+    const dataSource = itemFoodDetail && Object.keys(itemFoodDetail).length > 0 ? itemFoodDetail : item;
+    
     // Dynamically map the response keys to nutrient rows
-    const nutrients = Object.entries(item || {}).map(([key, value]) => {
-      // Format the key to make it more readable
-      const formattedKey = key
-        .replace(/_/g, ' ') // Replace underscores with spaces
-        .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize the first letter of each word
+    // Filter out object values - only include primitive values (strings, numbers, booleans)
+    const nutrients = Object.entries(dataSource || {})
+      .filter(([key, value]) => {
+        // Skip object and array values, and skip internal fields
+        return (typeof value !== 'object' || value === null) && 
+               !['image', 'createdAt', 'updatedAt', 'publishedAt'].includes(key);
+      })
+      .map(([key, value]) => {
+        // Format the key to make it more readable
+        const formattedKey = key
+          .replace(/_/g, ' ') // Replace underscores with spaces
+          .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize the first letter of each word
 
-      // Format the value (e.g., add units if necessary)
-      let formattedValue = value;
-      if (key.includes('calories')) {
-        formattedValue = `${value} Kcal`;
-      } else if (
-        key.includes('carbohydrates') ||
-        key.includes('protein') ||
-        key.includes('fat') ||
-        key.includes('fiber') ||
-        key.includes('sugar')
-      ) {
-        formattedValue = `${value} g`;
-      } else if (
-        key.includes('cholesterol') ||
-        key.includes('sodium') ||
-        key.includes('potassium')
-      ) {
-        formattedValue = `${value} mg`;
-      }
+        // Format the value (e.g., add units if necessary)
+        let formattedValue = value;
+        if (key.includes('Kcal') || key.includes('calories')) {
+          formattedValue = `${value} Kcal`;
+        } else if (
+          key.includes('carbohydrates') ||
+          key.includes('protein') ||
+          key.includes('fat') ||
+          key.includes('fiber') ||
+          key.includes('sugar')
+        ) {
+          formattedValue = `${value} g`;
+        } else if (
+          key.includes('cholesterol') ||
+          key.includes('sodium') ||
+          key.includes('potassium')
+        ) {
+          formattedValue = `${value} mg`;
+        }
 
-      return {name: formattedKey, value: formattedValue};
-    });
+        return {name: formattedKey, value: formattedValue};
+      });
 
     return (
       <View>
@@ -406,18 +419,25 @@ const handleSave = () => {
             });
         }}
       />
+      {isLoading ? (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      ) : (
       <ScrollView showsVerticalScrollIndicator={false}>
         <Image
           source={
-            image && Object.keys(image).length > 0
+            image && typeof image === 'object' && image.url
               ? {uri: image.url}
+              : item?.image && typeof item.image === 'object' && item.image.url
+              ? {uri: item.image.url}
               : Images.dummyImage3
           }
           style={{borderRadius: 20, height: 152, width: '100%', marginTop: 14}}
         />
         <View style={styles.detailView}>
           <Text size={12} type={Fonts.type.base} style={{fontWeight: '500'}}>
-            {item?.name || ''}
+            {itemFoodDetail?.name || item?.name || ''}
           </Text>
           {!isFromNutrition && renderBreakfastDropDown()}
           {renderSeparator()}
@@ -463,6 +483,7 @@ const handleSave = () => {
         </View>
         {!isFromNutrition && rerderSaveBtn()}
       </ScrollView>
+      )}
       <ModalCancel
         title="Are you sure you want to delete?"
         actionTitle={'Delete'}
