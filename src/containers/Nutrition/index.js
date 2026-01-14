@@ -489,17 +489,29 @@ export default function Natrition() {
             onPress={() => {
               addBtn();
             }}
-            style={[AppStyles.mLeft10, {}]}>
+            style={[AppStyles.mLeft10, {
+              width: 30,                    // ← Added
+              height: 30,                   // ← Added
+              borderRadius: 28,             // ← Added for circular shape
+              justifyContent: 'center',
+              alignItems: 'center',
+              elevation: 5,                 // ← Android shadow
+            }]}>
             <Image
               source={Images.NutritionPlus}
-              style={{tintColor: '#36405B'}}
+              style={{
+                width: 20,                  // ← Increased from default
+                height: 20,                 // ← Increased from default
+                tintColor: '#36405B',
+                resizeMode: 'contain'
+              }}
             />
           </ButtonView>
           <ButtonView
             onPress={() => setShowBottomSheet(true)}
             style={[styles.threeDot]}>
             <Image
-              style={{width: 3, height: 12}}
+              style={{width: 20, height: 20}}
               source={Images.threeDots}
               resizeMode="contain"
             />

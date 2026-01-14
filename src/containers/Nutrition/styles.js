@@ -121,8 +121,7 @@ export default StyleSheet.create({
 
   threeDot: {
     width: 25,
-    height: 20,
-    paddingVertical: 4,
+    height: 25,
     alignItems: 'flex-end',
   },
 });

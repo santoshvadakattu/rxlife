@@ -449,7 +449,7 @@ const handleSave = () => {
           {renderSeparator()}
           {renderMealRow(
             'Serving size',
-            servingSize || '1 cup',
+            servingSize || `${itemFoodDetail?.serving_size_g || item?.serving_size_g || '0'} g`,
             Colors.text.black,
           )}
           {renderSeparator()}
