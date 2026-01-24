@@ -1,4 +1,4 @@
-import {View, Image, Dimensions, ScrollView, FlatList, ActivityIndicator} from 'react-native';
+import {View, Image, ScrollView, FlatList, ActivityIndicator, TextInput} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import styles from './styles';
 import {
@@ -33,8 +33,15 @@ export default function FoodDetails({route}) {
   } = route.params || {};
 
   const [openDropDown, setOpenDropDown] = React.useState(false);
+  const [openServingSizeUnitDropDown, setOpenServingSizeUnitDropDown] = React.useState(false);
   const [selectedMeal, setSelectedMeal] = React.useState(
     selectedmeal ? selectedmeal : 'Breakfast',
+  );
+  const [selectedServingSizeUnit, setSelectedServingSizeUnit] = React.useState(
+    servingSizeUnit || 'grams',
+  );
+  const [editableServingSize, setEditableServingSize] = React.useState(
+    servingSize?.toString() || itemFoodDetail?.serving_size_g?.toString() || item?.serving_size_g?.toString() || '0',
   );
   const [isDeleteVisible, setIsDeleteVisible] = useState(false);
   const [itemFoodDetail, setFoodItemDetails] = useState({});
@@ -107,7 +114,36 @@ export default function FoodDetails({route}) {
 
   //render Functions UI
 
-  const renderMealRow = (name, value, color) => {
+  const renderMealRow = (name, value, color, isEditable = false, onChangeText = null) => {
+    if (isEditable) {
+      return (
+        <View>
+          <View
+            style={styles.mealView}>
+            <Text size={12} type={Fonts.type.base} style={{fontWeight: '500'}}>
+              {name}
+            </Text>
+            <View style={styles.mealsubView}>
+              <TextInput
+                style={styles.servingsizeInput}
+                placeholder="0"
+                keyboardType="decimal-pad"
+                value={editableServingSize}
+                onChangeText={onChangeText}
+              />
+              <Text
+                size={12}
+                type={Fonts.type.base}
+                style={{fontWeight: '500'}}
+                color={color}>
+                {selectedServingSizeUnit}
+              </Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View>
         <View
@@ -231,8 +267,8 @@ const handleSave = () => {
     name: item.name || '',
     description: item.description || '',
     Kcal: item.calories?.toString() || '0',
-    servingSize: item.serving_size_g || 0,
-    servingSizeUnit: item.servingSizeUnit || 'g',
+   servingSize: editableServingSize || item.serving_size_g || 0,
+   servingSizeUnit: selectedServingSizeUnit || 'grams',
     packageWeight: item.packageWeight || '',
     foodNutrients: foodNutrients,
     labelNutrients: labelNutrients,
@@ -341,6 +377,31 @@ const handleSave = () => {
     );
   };
 
+  const renderServingSizeUnitDropDown = () => {
+    return (
+      <View style={{backgroundColor: 'white'}}>
+        <View
+          style={styles.servingSizedropdownView}>
+          <Text size={12} type={Fonts.type.base} style={{fontWeight: '500'}}>
+            Serving Size Unit
+          </Text>
+          <ButtonView
+            onPress={() => setOpenServingSizeUnitDropDown(!openServingSizeUnitDropDown)}
+            style={styles.breakfastView}>
+            <Text
+              size={12}
+              type={Fonts.type.base}
+              style={{fontWeight: '500'}}
+              color={Colors.black}>
+              {selectedServingSizeUnit}
+            </Text>
+            <Image source={Images.dropDrop} />
+          </ButtonView>
+        </View>
+      </View>
+    );
+  };
+
   const fetchNutritionForItem = selectedItem => {
     const {name, quantity} = selectedItem; // Extract name and quantity from the selected item
     const query = `${name}&quantity=${quantity}`; // Construct the query string
@@ -441,16 +502,14 @@ const handleSave = () => {
           </Text>
           {!isFromNutrition && renderBreakfastDropDown()}
           {renderSeparator()}
-          {renderMealRow(
-            'Serving Size Unit',
-            servingSizeUnit || '',
-            Colors.text.black,
-          )}
+          {!isFromNutrition && renderServingSizeUnitDropDown()}
           {renderSeparator()}
           {renderMealRow(
             'Serving size',
-            servingSize || `${itemFoodDetail?.serving_size_g || item?.serving_size_g || '0'} g`,
+            servingSize || `${itemFoodDetail?.serving_size_g || item?.serving_size_g || '0'} ${selectedServingSizeUnit}`,
             Colors.text.black,
+            !isFromNutrition,
+            (text) => setEditableServingSize(text),
           )}
           {renderSeparator()}
           {renderGraph()}
@@ -465,6 +524,31 @@ const handleSave = () => {
                       onPress={() => {
                         setOpenDropDown(false);
                         setSelectedMeal(item);
+                      }}
+                      style={{padding: 10}}>
+                      <Text
+                        size={12}
+                        color={Colors.black}
+                        style={{fontWeight: '400'}}>
+                        {item}
+                      </Text>
+                      <SeperaterView />
+                    </ButtonView>
+                  );
+                }}
+              />
+            </View>
+          )}
+          {openServingSizeUnitDropDown && (
+            <View style={[styles.dropDrowView, {marginTop: 60}]}>
+              <FlatList
+                data={['grams', 'oz', 'cups', 'quantity']}
+                renderItem={({item}) => {
+                  return (
+                    <ButtonView
+                      onPress={() => {
+                        setOpenServingSizeUnitDropDown(false);
+                        setSelectedServingSizeUnit(item);
                       }}
                       style={{padding: 10}}>
                       <Text

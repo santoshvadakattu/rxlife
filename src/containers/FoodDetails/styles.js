@@ -64,4 +64,37 @@ export default StyleSheet.create({
     borderWidth: 1,
     zIndex: 10,
   },
+  servingsizeInput: {
+     borderWidth: 1,
+     borderColor: Colors.primary,
+     borderRadius: 8,
+     paddingHorizontal: 10,
+     paddingVertical: 8,
+     width: 60,
+     marginRight: 10,
+     fontSize: 12,
+     textAlign: 'right',
+     fontWeight: '500',
+     color: Colors.black,
+  },
+  mealView: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+   },
+   mealsubView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1
+   },
+   servingSizedropdownView: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+   }
+    
 });
+
+            
+            
