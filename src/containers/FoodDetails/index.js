@@ -73,6 +73,9 @@ export default function FoodDetails({route}) {
             if (status) {
               console.log({response});
               setFoodItemDetails(response);
+              // Initialize serving size from API response
+              setEditableServingSize(response?.servingSize?.toString() || response?.serving_size_g?.toString() || '0');
+              setSelectedServingSizeUnit(response?.servingSizeUnit || response?.servingSizeUnit || 'grams');
             }
             setIsLoading(false);
           },
@@ -87,6 +90,9 @@ export default function FoodDetails({route}) {
           responseCallback: (status, response) => {
             if (status) {
               setFoodItemDetails(response);
+              // Initialize serving size from API response
+              setEditableServingSize(response?.servingSize?.toString() || response?.serving_size_g?.toString() || '0');
+              setSelectedServingSizeUnit(response?.servingSizeUnit || response?.servingSizeUnit || 'grams');
             }
             setIsLoading(false);
           },
@@ -171,49 +177,126 @@ export default function FoodDetails({route}) {
     return <View style={styles.separator} />;
   };
 
+  const getMultiplier = () => {
+    // Get the base serving size (original from database)
+    const baseServingSize = Number(itemFoodDetail?.servingSize || itemFoodDetail?.serving_size_g || item?.serving_size_g || 1);
+    
+    // Current serving size (may be edited)
+    const currentServingSize = Number(editableServingSize) || baseServingSize;
+    const currentUnit = selectedServingSizeUnit || servingSizeUnit || 'grams';
+    
+    // quantity acts as direct multiplier (1,2,...)
+    if (currentUnit === 'quantity') return currentServingSize;
+
+    // treat 'grams' or 'g' as same unit
+    if (currentUnit === 'grams' || currentUnit === 'g') {
+      return currentServingSize / baseServingSize;
+    }
+
+    // basic conversions to grams for common units (approx)
+    const unitToGram = {
+      oz: 28.35,
+      lb: 453.592,
+      cup: 240,
+      cups: 240,
+      tbsp: 15,
+      tsp: 5,
+      ml: 1,
+    };
+    
+    const conv = unitToGram[currentUnit];
+    if (conv) {
+      const grams = currentServingSize * conv;
+      return grams / baseServingSize;
+    }
+
+    // fallback: treat as multiplier
+    return currentServingSize;
+  };
+
+  const scaleNumeric = (value, multiplier) => {
+    const num = Number(value);
+    if (isNaN(num)) return value;
+    // round to one decimal if not integer
+    const scaled = num * multiplier;
+    return Math.round(scaled * 10) / 10;
+  };
+
+  const getScaledDataSource = () => {
+    const base = itemFoodDetail && Object.keys(itemFoodDetail).length ? itemFoodDetail : item;
+    const m = getMultiplier();
+
+    const scaled = {...base};
+    // keys that should be scaled when multiplier applies
+    const numericKeys = [
+      'calories',
+      'Kcal',
+      'carbohydrates_total_g',
+      'fat_total_g',
+      'fat_saturated_g',
+      'protein_g',
+      'sodium_mg',
+      'potassium_mg',
+      'cholesterol_mg',
+      'sugar_g',
+      'fiber_g',
+      'serving_size_g',
+    ];
+
+    numericKeys.forEach(k => {
+      if (base && base.hasOwnProperty(k)) {
+        scaled[k] = scaleNumeric(base[k], m);
+      }
+    });
+
+    // also scale labelNutrients array if present
+    if (Array.isArray(base.labelNutrients)) {
+      scaled.labelNutrients = base.labelNutrients.map(n => ({
+        ...n,
+        value: scaleNumeric(n.value, m),
+      }));
+    }
+
+    return scaled;
+  };
+
   const renderGraph = () => {
+    const scaled = getScaledDataSource();
     return (
       <>
-        <NutritionGraph labelNutrients={labelNutrients || item || []} />
+        <NutritionGraph labelNutrients={scaled.labelNutrients || scaled || []} />
       </>
     );
   };
 
   const renderNutrients = () => {
+    const dataSource = getScaledDataSource();
 
-    // Use itemFoodDetail (fetched data) instead of item (prop data) for complete nutrient info
-    const dataSource = itemFoodDetail && Object.keys(itemFoodDetail).length > 0 ? itemFoodDetail : item;
-    
-    // Dynamically map the response keys to nutrient rows
-    // Filter out object values - only include primitive values (strings, numbers, booleans)
     const nutrients = Object.entries(dataSource || {})
       .filter(([key, value]) => {
-        // Skip object and array values, and skip internal fields
-        return (typeof value !== 'object' || value === null) && 
+        return (typeof value !== 'object' || value === null) &&
                !['image', 'createdAt', 'updatedAt', 'publishedAt'].includes(key);
       })
       .map(([key, value]) => {
-        // Format the key to make it more readable
         const formattedKey = key
-          .replace(/_/g, ' ') // Replace underscores with spaces
-          .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize the first letter of each word
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, (char) => char.toUpperCase());
 
-        // Format the value (e.g., add units if necessary)
         let formattedValue = value;
-        if (key.includes('Kcal') || key.includes('calories')) {
+        if (key.toLowerCase().includes('kcal') || key.toLowerCase().includes('calories')) {
           formattedValue = `${value} Kcal`;
         } else if (
-          key.includes('carbohydrates') ||
-          key.includes('protein') ||
-          key.includes('fat') ||
-          key.includes('fiber') ||
-          key.includes('sugar')
+          key.toLowerCase().includes('carbohydrates') ||
+          key.toLowerCase().includes('protein') ||
+          key.toLowerCase().includes('fat') ||
+          key.toLowerCase().includes('fiber') ||
+          key.toLowerCase().includes('sugar')
         ) {
           formattedValue = `${value} g`;
         } else if (
-          key.includes('cholesterol') ||
-          key.includes('sodium') ||
-          key.includes('potassium')
+          key.toLowerCase().includes('cholesterol') ||
+          key.toLowerCase().includes('sodium') ||
+          key.toLowerCase().includes('potassium')
         ) {
           formattedValue = `${value} mg`;
         }
@@ -243,17 +326,20 @@ const handleSave = () => {
   console.log('Item received:', item);
   console.log('User ID:', user?.id);
 
-  // Map the API response to foodNutrients format
+  // Get scaled data
+  const scaled = getScaledDataSource();
+
+  // Map the API response to foodNutrients format using SCALED values
   const foodNutrients = [
-    { name: 'Carbohydrates', value: item.carbohydrates_total_g || 0, unit: 'g' },
-    { name: 'Cholesterol', value: item.cholesterol_mg || 0, unit: 'mg' },
-    { name: 'Fat (Saturated)', value: item.fat_saturated_g || 0, unit: 'g' },
-    { name: 'Total Fat', value: item.fat_total_g || 0, unit: 'g' },
-    { name: 'Fiber', value: item.fiber_g || 0, unit: 'g' },
-    { name: 'Potassium', value: item.potassium_mg || 0, unit: 'mg' },
-    { name: 'Protein', value: item.protein_g || 0, unit: 'g' },
-    { name: 'Sodium', value: item.sodium_mg || 0, unit: 'mg' },
-    { name: 'Sugar', value: item.sugar_g || 0, unit: 'g' },
+    { name: 'Carbohydrates', value: scaled.carbohydrates_total_g || 0, unit: 'g' },
+    { name: 'Cholesterol', value: scaled.cholesterol_mg || 0, unit: 'mg' },
+    { name: 'Fat (Saturated)', value: scaled.fat_saturated_g || 0, unit: 'g' },
+    { name: 'Total Fat', value: scaled.fat_total_g || 0, unit: 'g' },
+    { name: 'Fiber', value: scaled.fiber_g || 0, unit: 'g' },
+    { name: 'Potassium', value: scaled.potassium_mg || 0, unit: 'mg' },
+    { name: 'Protein', value: scaled.protein_g || 0, unit: 'g' },
+    { name: 'Sodium', value: scaled.sodium_mg || 0, unit: 'mg' },
+    { name: 'Sugar', value: scaled.sugar_g || 0, unit: 'g' },
   ];
 
   // Calculate labelNutrients from foodNutrients
@@ -266,9 +352,9 @@ const handleSave = () => {
   const payloadData = {
     name: item.name || '',
     description: item.description || '',
-    Kcal: item.calories?.toString() || '0',
-   servingSize: editableServingSize || item.serving_size_g || 0,
-   servingSizeUnit: selectedServingSizeUnit || 'grams',
+    Kcal: scaled.calories?.toString() || scaled.Kcal?.toString() || '0',
+    servingSize: Number(editableServingSize) || Number(item.serving_size_g) || 0,
+    servingSizeUnit: selectedServingSizeUnit || 'grams',
     packageWeight: item.packageWeight || '',
     foodNutrients: foodNutrients,
     labelNutrients: labelNutrients,
